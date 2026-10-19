@@ -15,6 +15,9 @@ A release named `<cachyos tag>-<zfs tag>`, for example `7.2.11-1-zfs-2.4.4`:
 - `zfs-userland.tar.gz`: the ZFS tools from the same OpenZFS tree, all paths
   under `/usr`, systemd units included. Unpack at `/`.
 
+The image deb is about 320 MB (344 MB unpacked): CachyOS's config builds a
+much wider module set than Debian's. Modules are stripped already.
+
 The kernel release string is `<kver>-cachyos` (for example `7.2.11-cachyos`),
 so the packages never collide with ryokudebian-kernel's `<kver>-ryokudebian` ones
 and both can be installed side by side. The Debian revision carries the
