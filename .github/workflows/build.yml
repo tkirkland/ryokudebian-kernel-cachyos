@@ -1,0 +1,47 @@
+name: build
+on:
+  schedule:
+    - cron: '47 4 * * 1'   # weekly
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    outputs:
+      zfs: ${{ steps.p.outputs.zfs }}
+      matrix: ${{ steps.p.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: p
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: ./plan.sh >> "$GITHUB_OUTPUT"
+
+  build:
+    needs: plan
+    if: needs.plan.outputs.matrix != '[]'
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJSON(needs.plan.outputs.matrix) }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 355
+    steps:
+      - uses: actions/checkout@v4
+      - name: Free runner disk
+        run: sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache
+      - name: Build ${{ matrix.rel }}
+        run: |
+          docker run --rm -v "$PWD:/src" debian:trixie \
+            /src/build.sh "${{ matrix.src }}" "${{ matrix.dir }}" "${{ matrix.sha }}" "${{ matrix.psha }}" \
+              "${{ needs.plan.outputs.zfs }}" /src/out
+      - name: Publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${{ matrix.rel }}" out/* \
+            --title "CachyOS ${{ matrix.src }} + ${{ needs.plan.outputs.zfs }} (builtin)" \
+            --notes "CachyOS kernel ${{ matrix.src }} (config from CachyOS/linux-cachyos@${{ matrix.sha }}, ${{ matrix.dir }}; BORE from CachyOS/kernel-patches@${{ matrix.psha }}), gcc, BORE, with OpenZFS ${{ needs.plan.outputs.zfs }} compiled in (CONFIG_ZFS=y). Image + headers debs and the matching ZFS userland tarball."
