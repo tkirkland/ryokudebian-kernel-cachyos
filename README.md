@@ -126,3 +126,11 @@ created by an older ZFS install; only the image deb was installed.
 Not tested: real hardware, the headers deb with an out-of-tree module
 (NVIDIA DKMS), a UKI built from this kernel, and the CI-built debs (same
 scripts, different machine).
+
+## Consumers
+
+Release tags look like `7.2.11-1-zfs-2.4.4`: the CachyOS tag release (`-1`)
+sits between the kernel version and `-zfs-`. Anything that finds releases by
+matching tags must allow it. debian13-stripped's `build-rootfs.sh` matches
+`^<line>\.[0-9.]+-zfs-` against the Debian kernel repo only, so it would not
+pick these up. The installer's kernel choice (D-06) needs its own lookup here.
