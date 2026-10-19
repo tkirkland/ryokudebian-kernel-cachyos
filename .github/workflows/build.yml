@@ -45,3 +45,9 @@ jobs:
           gh release create "${{ matrix.rel }}" out/* \
             --title "CachyOS ${{ matrix.src }} + ${{ needs.plan.outputs.zfs }} (builtin)" \
             --notes "CachyOS kernel ${{ matrix.src }} (config from CachyOS/linux-cachyos@${{ matrix.sha }}, ${{ matrix.dir }}; BORE from CachyOS/kernel-patches@${{ matrix.psha }}), gcc, BORE, with OpenZFS ${{ needs.plan.outputs.zfs }} compiled in (CONFIG_ZFS=y). Image + headers debs and the matching ZFS userland tarball."
+      # Keep current + previous release; prune.sh refuses unless every built
+      # file is uploaded, so a failed build never prunes.
+      - name: Prune older releases
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: ./prune.sh "${{ matrix.rel }}" "$(ls out | wc -l)"

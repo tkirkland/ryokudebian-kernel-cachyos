@@ -31,6 +31,10 @@ OpenZFS version, so a rebuild against a newer OpenZFS upgrades in place.
   kernel-patches commits. It
   builds `linux-cachyos-bore` when its major is supported, else falls back to
   `linux-cachyos-lts` (with BORE too). Already-published releases are skipped.
+- After a release has all its assets uploaded, `prune.sh` keeps it plus the
+  previous release (by publish time, so an lts fallback still counts as
+  current) and deletes the rest with their git tags. A failed build never
+  prunes. `KEEP=<n>` changes the count.
 - `build.sh` runs inside `docker run debian:trixie`:
   1. the pre-patched source tarball from
      [CachyOS/linux](https://github.com/CachyOS/linux/releases) releases
