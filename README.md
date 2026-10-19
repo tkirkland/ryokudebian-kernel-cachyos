@@ -104,8 +104,25 @@ produce is skipped with the `pkg.linux-upstream.nokerneldbg` build profile.
 - **x86-64 v1 only**, no v3/v4 or znver4 builds.
 - AutoFDO / Propeller profiles, which CachyOS uses for its clang kernels, do not
   apply to a gcc build.
-- Not boot-tested yet (see below).
 
 ## Boot test
 
-Not yet done.
+Done 2026-10-19 with the locally built debs of the first release
+(`cachyos-7.2.11-1` + `zfs-2.4.4`), in a q35/OVMF VM with Secure Boot on:
+shim, then Limine with its config hash enrolled and re-signed by the test MOK,
+loading the kernel and initrd from the ESP root over the linux protocol with
+`#blake2b` hashes. Root is a single-disk ZFS pool (`rpool/ROOT/hyprdebian`)
+created by an older ZFS install; only the image deb was installed.
+
+- Boots; `uname -r` is `7.2.11-cachyos`; dmesg says `Secure boot enabled`.
+- `BORE CPU Scheduler modification 6.8.0`, `/proc/sys/kernel/sched_bore`.
+- `ZFS: Loaded module v2.4.4-1` from the kernel itself, no zfs.ko; `zpool
+  status -x` healthy, 0 failed units.
+- `/sys/kernel/sched_ext/state` exists (`disabled`: no scx scheduler loaded).
+- `/sys/kernel/security/lockdown` is `[none]`, as expected (see Known gaps).
+- The initrd built with `MODULES=most` is 106 MB, about 2.5 times Debian's,
+  for the same module-set reason as the image size.
+
+Not tested: real hardware, the headers deb with an out-of-tree module
+(NVIDIA DKMS), a UKI built from this kernel, and the CI-built debs (same
+scripts, different machine).
